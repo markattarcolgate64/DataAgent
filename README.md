@@ -1,6 +1,6 @@
-# DataAgent Pro - Advanced Data Analysis Assistant
+# DataAgent - Data Analysis Agent
 
-An AI-powered data analysis assistant built with Anthropic's Claude API, featuring comprehensive data manipulation, analysis, and visualization capabilities.
+An data analyst agent built with Anthropic's Claude API, featuring comprehensive data manipulation, analysis, and visualization capabilities.
 
 ## Key Enhancement: Multi-Tool Workflows 🚀
 
