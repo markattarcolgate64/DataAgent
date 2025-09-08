@@ -1,16 +1,22 @@
-# DataAgent Pro - Advanced Data Analysis Assistant
+# DataAgent
 
-An AI-powered data analysis assistant built with Anthropic's Claude API, featuring comprehensive data manipulation, analysis, and visualization capabilities.
+AI-powered data analysis assistant built with Anthropic's Claude API. Works as both a command-line tool and web interface for comprehensive data manipulation, analysis, and visualization.
 
-## Key Enhancement: Multi-Tool Workflows 🚀
+## Quick Start
 
-The DataAgent now **automatically uses multiple tools** in a single response to provide comprehensive analyses. No more one-tool-at-a-time interactions!
+### Web App (Recommended)
+```bash
+pip install -r requirements.txt
+python run_web.py
+# Open http://localhost:8000
+```
 
-### Examples of Multi-Tool Workflows:
-- **"Load data.csv"** → Automatically loads, previews, shows info, and calculates statistics
-- **"Clean this data"** → Detects outliers, handles missing values, removes duplicates, and saves
-- **"Analyze the data"** → Runs profiling, correlations, outlier detection, and visualizations
-- **"Show me what's interesting"** → Executes complete exploratory data analysis workflow
+### Command Line Interface
+```python
+from data_agent import DataAgent
+agent = DataAgent()
+agent.interactive_chat()
+```
 
 ## Features
 
@@ -64,23 +70,38 @@ The DataAgent now **automatically uses multiple tools** in a single response to 
 
 ## Installation
 
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2. Set up environment variables:
-```bash
-# Create a .env file
-ANTHROPIC_API_KEY=your-api-key-here
-TWILIO_ACCOUNT_SID=your-twilio-sid  # Optional
-TWILIO_AUTH_TOKEN=your-twilio-token  # Optional
-TWILIO_PHONE_NUMBER=your-twilio-phone  # Optional
-```
+2. **Set up your API key:**
+   Create a `.env` file:
+   ```
+   ANTHROPIC_API_KEY=your-api-key-here
+   TWILIO_ACCOUNT_SID=your-twilio-sid  # Optional for SMS
+   TWILIO_AUTH_TOKEN=your-twilio-token  # Optional for SMS  
+   TWILIO_PHONE_NUMBER=your-twilio-phone  # Optional for SMS
+   ```
 
 ## Usage
 
-### Basic Usage
+### Web Interface
+
+1. **Run the web interface:**
+   ```bash
+   python run_web.py
+   ```
+
+2. **Open your browser:**
+   Go to `http://localhost:8000`
+
+3. **Upload & Chat:**
+   - Drag and drop a data file (CSV, Excel, JSON, or Parquet)
+   - Chat with your data using natural language
+   - Export processed results
+
+### Command Line Interface
 
 ```python
 from data_agent import DataAgent
@@ -94,17 +115,30 @@ agent.interactive_chat()
 
 ### Example Commands
 
-In the interactive chat, you can use natural language commands like:
+**Basic Analysis:**
+- "Show me basic statistics"
+- "What's the shape of this data?"
+- "Tell me about missing values"
 
-- "List all CSV files in the current directory"
-- "Load the sales.csv file"
-- "Show me basic statistics for all numeric columns"
-- "Filter the data where revenue > 1000"
-- "Create a scatter plot of price vs quantity"
-- "Find correlations between all numeric columns"
-- "Handle missing values by filling with the mean"
+**Data Exploration:**
+- "What are the correlations between columns?"
+- "Show me outliers in the data"
+- "Create a data profile"
+
+**Filtering & Manipulation:**
+- "Filter rows where sales > 1000"
+- "Remove duplicate rows"
+- "Fill missing values with the mean"
+
+**Visualizations:**
+- "Create a scatter plot of X vs Y"
+- "Show me a correlation heatmap"
+- "Make a histogram of the price column"
+
+**Advanced Analysis:**
 - "Run clustering analysis with 3 clusters"
-- "Save the filtered data as filtered_sales.xlsx"
+- "Perform linear regression on this data"
+- "Show time series trends"
 
 ### Programmatic Usage
 
@@ -168,11 +202,42 @@ response = agent.send_message("Create a correlation heatmap")
 - `run_regression`: Linear regression
 - `time_series_analysis`: Analyze time series
 
+## Troubleshooting
+
+### Common Issues
+
+**"DataAgent initialization failed"**
+- Check that `ANTHROPIC_API_KEY` is set in your `.env` file
+- Verify the API key is valid
+
+**"File type not supported"**
+- Only CSV, Excel, JSON, and Parquet files are supported
+- Check the file extension is correct
+
+**"Upload failed"**  
+- File might be too large (50MB limit)
+- Check file isn't corrupted
+- Ensure sufficient disk space
+
+**Web interface won't load**
+- Check if port 5000 is already in use
+- Try running with `python web_app.py` directly
+- Check console for error messages
+
 ## Requirements
 
 - Python 3.8+
 - Anthropic API key
 - Optional: Twilio credentials for SMS functionality
+
+## Technical Details
+
+- **Backend:** Flask web server with REST API
+- **Frontend:** Vanilla JavaScript with modern CSS
+- **Data Processing:** Pandas, NumPy, Scikit-learn, Plotly
+- **Database:** DuckDB for SQL queries
+- **File Storage:** Temporary uploads with session cleanup
+- **Security:** Isolated user sessions, server-side API keys
 
 ## License
 
