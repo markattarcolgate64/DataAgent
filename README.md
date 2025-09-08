@@ -1,6 +1,6 @@
 # DataAgent
 
-AI-powered data analysis assistant built with Anthropic's Claude API. Works as both a command-line tool and web interface for comprehensive data manipulation, analysis, and visualization.
+AI-powered data analysis assistant built with Anthropic's Claude API. Works as both a command-line tool and has a simple web app for data manipulation, analysis, and visualization. You can use to quickly manipulate and export structured data files or ask some questions about said file.
 
 ## Quick Start
 
