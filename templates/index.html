@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataAgent Web UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            height: 80vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .upload-area.uploading {
+            border-color: #28a745;
+            background-color: #f8fff8;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #ced4da;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Data Preview */
+        .data-preview {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .preview-header {
+            background: #e9ecef;
+            padding: 12px 16px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .preview-table {
+            max-height: 300px;
+            overflow: auto;
+            padding: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Messages */
+        .message {
+            margin-bottom: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-user {
+            text-align: right;
+        }
+
+        .message-agent {
+            text-align: left;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message-user .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-agent .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            white-space: pre-wrap;
+        }
+
+        /* Input */
+        .chat-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            padding: 12px 16px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 44px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .chat-input:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: #5a6fd8;
+        }
+
+        .send-btn:disabled {
+            background: #ced4da;
+            cursor: not-allowed;
+        }
+
+        /* Dataset List */
+        .dataset-list {
+            margin-top: 20px;
+        }
+
+        .dataset-item {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+            font-size: 13px;
+        }
+
+        .dataset-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 4px;
+        }
+
+        .dataset-info {
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="color: #495057; margin-bottom: 20px;">DataAgent</h2>
+            
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-text">Drop your data file here</div>
+                <div class="upload-text" style="font-size: 12px;">or click to browse</div>
+                <div class="upload-text" style="font-size: 11px; margin-top: 8px;">CSV, Excel, JSON, Parquet</div>
+            </div>
+            <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls,.json,.parquet">
+            
+            <!-- Data Preview -->
+            <div class="data-preview" id="dataPreview">
+                <div class="preview-header">
+                    Data Preview
+                </div>
+                <div class="preview-table" id="previewTable">
+                    <!-- Preview content will be inserted here -->
+                </div>
+            </div>
+            
+            <!-- Dataset List -->
+            <div class="dataset-list">
+                <h3 style="color: #495057; margin-bottom: 12px; font-size: 14px;">Loaded Datasets</h3>
+                <div id="datasetList">
+                    <div style="color: #6c757d; font-size: 12px; text-align: center; padding: 20px;">
+                        No datasets loaded
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="clearSession()" style="width: 100%; margin-top: 20px;">
+                Clear Data
+            </button>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1 style="color: #495057;">Chat with your data</h1>
+                <p style="color: #6c757d; margin-top: 8px;">Upload a data file and ask questions about it in natural language</p>
+            </div>
+            
+            <div class="chat-area">
+                <div class="messages" id="messages">
+                    <div class="message message-agent">
+                        <div class="message-content">
+                            Upload a CSV, Excel, JSON, or Parquet file to get started. 
+                            
+Example questions:
+• "Show me basic statistics"
+• "What are the trends in this data?"
+• "Create a correlation matrix"
+• "Filter data where column > 100"
+• "Export the cleaned dataset"
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <div class="chat-input-container">
+                        <textarea 
+                            id="chatInput" 
+                            class="chat-input" 
+                            placeholder="Upload a file first to start chatting..."
+                            disabled
+                            rows="1"
+                        ></textarea>
+                        <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDataLoaded = false;
+        
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+        
+        // Chat input handling
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!chatInput.disabled) {
+                    sendMessage();
+                }
+            }
+        });
+        
+        // Auto-resize textarea
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        });
+        
+        // Enable send button when there's text
+        chatInput.addEventListener('input', () => {
+            const hasText = chatInput.value.trim().length > 0;
+            sendBtn.disabled = !hasText || !isDataLoaded || chatInput.disabled;
+        });
+        
+        function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            uploadArea.classList.add('uploading');
+            uploadArea.innerHTML = `
+                <div class="loading"></div>
+                <div class="upload-text">Uploading and processing...</div>
+            `;
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showDataPreview(data);
+                    addMessage(`📁 Successfully loaded ${data.filename}!\n\n${data.load_result}\n\n${data.info}`, 'agent');
+                    enableChat();
+                    loadDatasets();
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('Upload failed: ' + error.message);
+            })
+            .finally(() => {
+                resetUploadArea();
+            });
+        }
+        
+        function showDataPreview(data) {
+            const preview = document.getElementById('dataPreview');
+            const previewTable = document.getElementById('previewTable');
+            
+            // Parse preview data if it's a table format
+            previewTable.innerHTML = `<pre style="font-size: 11px; white-space: pre-wrap;">${data.preview}</pre>`;
+            preview.style.display = 'block';
+        }
+        
+        function resetUploadArea() {
+            uploadArea.classList.remove('uploading');
+            uploadArea.innerHTML = `
+                <div class="upload-icon">📊</div>
+                <div class="upload-text">Drop your data file here</div>
+                <div class="upload-text" style="font-size: 12px;">or click to browse</div>
+                <div class="upload-text" style="font-size: 11px; margin-top: 8px;">CSV, Excel, JSON, Parquet</div>
+            `;
+        }
+        
+        function enableChat() {
+            chatInput.disabled = false;
+            chatInput.placeholder = "Ask a question about your data...";
+            isDataLoaded = true;
+            
+            // Update button state based on input content
+            const hasText = chatInput.value.trim().length > 0;
+            sendBtn.disabled = !hasText;
+            
+            // Focus the input to show it's ready
+            setTimeout(() => chatInput.focus(), 100);
+        }
+        
+        function addMessage(content, type) {
+            const messages = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+            messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function showError(error) {
+            const messages = document.getElementById('messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = error;
+            messages.appendChild(errorDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message || !isDataLoaded || chatInput.disabled) return;
+            
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto'; // Reset height after clearing
+            
+            // Disable input during processing
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message message-agent';
+            loadingDiv.innerHTML = `<div class="message-content"><div class="loading"></div> Processing...</div>`;
+            const messages = document.getElementById('messages');
+            messages.appendChild(loadingDiv);
+            messages.scrollTop = messages.scrollHeight;
+            
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                messages.removeChild(loadingDiv);
+                if (data.success) {
+                    addMessage(data.response, 'agent');
+                    loadDatasets(); // Refresh dataset list
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                messages.removeChild(loadingDiv);
+                showError('Chat failed: ' + error.message);
+            })
+            .finally(() => {
+                // Re-enable chat input
+                chatInput.disabled = false;
+                sendBtn.disabled = true; // Will be enabled when user types
+                chatInput.focus();
+            });
+        }
+        
+        function loadDatasets() {
+            fetch('/datasets')
+            .then(response => response.json())
+            .then(data => {
+                const datasetList = document.getElementById('datasetList');
+                if (data.datasets && data.datasets.length > 0) {
+                    datasetList.innerHTML = data.datasets.map(dataset => `
+                        <div class="dataset-item">
+                            <div class="dataset-name">${dataset.name}</div>
+                            <div class="dataset-info">${dataset.shape[0]} rows × ${dataset.shape[1]} columns</div>
+                            <button class="btn" onclick="exportDataset('${dataset.name}')" style="font-size: 10px;">
+                                Export CSV
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    datasetList.innerHTML = `
+                        <div style="color: #6c757d; font-size: 12px; text-align: center; padding: 20px;">
+                            No datasets loaded
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Failed to load datasets:', error);
+            });
+        }
+        
+        function exportDataset(datasetName) {
+            window.open(`/export/${datasetName}`, '_blank');
+        }
+        
+        function clearSession() {
+            if (confirm('Clear all data and start over?')) {
+                fetch('/clear_session', { method: 'POST' })
+                .then(() => {
+                    location.reload();
+                });
+            }
+        }
+        
+        // Load datasets on page load
+        loadDatasets();
+        
+        // Add click handler for send button (backup to onclick)
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // Debug logging
+        console.log('DataAgent UI initialized');
+        console.log('Chat input element:', chatInput);
+        console.log('Send button element:', sendBtn);
+    </script>
+</body>
+</html>
